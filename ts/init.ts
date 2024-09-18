@@ -37,8 +37,8 @@ const init = async (
         return 1
     }
 
-    const cmd = `ipfs add --pin -Q -r ${dirname}`
-    const out = shelljs.exec(cmd, { silent: true })
+    const cmd = `ipfs add --pin -r ${dirname}`
+    const out = shelljs.exec(cmd)
     if (out.code !== 0 || out.stderr) {
         console.error(`Error: could not add ${dirname} to IPFS.`)
         console.error(out.stderr)
