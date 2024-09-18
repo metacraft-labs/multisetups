@@ -7,6 +7,7 @@ import * as path from 'path'
 import {
     validateZkeyDir,
     countDirents,
+    S3_BUCKET,
 } from './utils'
 
 const configureSubparsers = (subparsers: ArgumentParser) => {
@@ -16,13 +17,13 @@ const configureSubparsers = (subparsers: ArgumentParser) => {
     )
 
     parser.add_argument(
-        '-m',
-        '--multihash',
+        '-hash',
+        '--hashroot',
         {
             required: true,
             action: 'store',
             type: 'str',
-            help: 'The multihash that you received from the coordinator.'
+            help: 'The hash that you received from the coordinator.'
         }
     )
 
@@ -40,7 +41,7 @@ const configureSubparsers = (subparsers: ArgumentParser) => {
 }
 
 const download = async (
-    multihash: string,
+    hash: string,
     dirname: string,
 ) => {
     if (!fs.existsSync(dirname)) {
@@ -55,11 +56,11 @@ const download = async (
     }
 
     // Download files
-    const cmd = `ipfs get -o ${dirname} /ipfs/${multihash}`
+    const cmd = `aws s3 cp --recursive ${S3_BUCKET}/${hash} ./${dirname}`
     const out = shelljs.exec(cmd)
 
     if (out.code !== 0) {
-        console.error(`Error: could not download files from /ipfs/${multihash}`)
+        console.error(`Error: could not download files from aws ${S3_BUCKET}/${hash}`)
         console.error(out.code, out.stderr)
         return 1
     }

@@ -6,8 +6,12 @@ import * as path from 'path'
 
 import {
     FORMAT,
+    S3_BUCKET,
+    computeB3sum,
     countDirents,
+    getZkeyFiles,
 } from './utils'
+import MerkleTree from 'merkletreejs'
 
 const configureSubparsers = (subparsers: ArgumentParser) => {
     const parser = subparsers.add_parser(
@@ -43,17 +47,25 @@ const upload = async (
         return 1
     }
 
+    const zkeyFiles = getZkeyFiles(dirname)
+
+    let hashes = zkeyFiles.map(z => computeB3sum(z.filename))
+
+    const tree = new MerkleTree(hashes);
+
+    const root = tree.getRoot().toString('hex');
+
     // Upload files
-    const cmd = `ipfs add --pin -Q -r ${dirname}`
+    const cmd = `aws s3 cp --recursive ${dirname} ${S3_BUCKET}/${root}`
     const out = shelljs.exec(cmd, { silent: true })
     if (out.code !== 0 || out.stderr) {
-        console.error(`Error: could not add ${dirname} to IPFS.`)
+        console.error(`Error: could not add ${dirname} to AWS.`)
         console.error(out.stderr)
         return 1
     }
-    const multihash = out.stdout.trim()
-    console.log('Contribution uploaded. Please send this multihash to the coordinator and keep your IPFS node running and connected to the IPFS network.')
-    console.log(multihash)
+
+    console.log('Contribution uploaded. Please send this Hash root to the coordinator.')
+    console.log(root)
     return 0
 }
 

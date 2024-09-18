@@ -69,7 +69,7 @@ const run = async () => {
             //return (await init(config))
             return (await init(args.dir))
         } else if (args.subcommand === 'download') {
-            return (await download(args.multihash, args.dir))
+            return (await download(args.hashroot, args.dir))
         } else if (args.subcommand === 'contribute') {
             return (await contribute(args.dir, args['new'], args.entropy))
         } else if (args.subcommand === 'attest') {

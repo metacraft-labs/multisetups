@@ -1,7 +1,10 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import * as shelljs from 'shelljs'
 
 const FORMAT = '<name>.<num>.zkey'
+
+const S3_BUCKET = process.env.S3_BUCKET;
 
 const parseZkeyFilename = (file: string) => {
     const r = /^(.+)\.(\d+)\.zkey$/
@@ -13,6 +16,18 @@ const parseZkeyFilename = (file: string) => {
         }
     }
     return null
+}
+
+function computeB3sum(filePath) {
+    const result = shelljs.exec(`b3sum ${filePath}`, { silent: true });
+
+    if (result.code !== 0) {
+        console.error(`Error computing b3sum for file ${filePath}: ${result.stderr}`);
+        return null;
+    }
+
+    // The output format of b3sum is "HASH  FILENAME"
+    return result.stdout.split(' ')[0];
 }
 
 const getZkeyFiles = (
@@ -53,9 +68,9 @@ const validateZkeyDir = (
     for (const z of zkeyFiles) {
         uniqNames.add(z.name)
         //if (z.num !== 0) {
-            //console.log(z)
-            //console.error(`Error: all .zkey files in ${dirname} should have the correct format: ${FORMAT}`)
-            //return 1
+        //console.log(z)
+        //console.error(`Error: all .zkey files in ${dirname} should have the correct format: ${FORMAT}`)
+        //return 1
         //}
     }
     if (uniqNames.size !== zkeyFiles.length) {
@@ -71,15 +86,17 @@ const countDirents = (
 ): number => {
     let numFiles = 0
     for (const _file of fs.readdirSync(dirname)) {
-        numFiles ++
+        numFiles++
     }
     return numFiles
 }
 
 export {
     FORMAT,
+    S3_BUCKET,
     getZkeyFiles,
     validateZkeyDir,
     parseZkeyFilename,
     countDirents,
+    computeB3sum
 }
