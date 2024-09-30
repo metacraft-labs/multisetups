@@ -47,7 +47,7 @@ const upload = async (dirname: string) => {
 
     // Upload files
     const cmd = `azcopy cp "${dirname}/*" "https://dendrethstorage.blob.core.windows.net/trusted-setup/${root}?${AZURE_SAS_TOKEN}" --recursive`;
-    const out = shelljs.exec(cmd, { silent: true });
+    const out = shelljs.exec(cmd);
     if (out.code !== 0 || out.stderr) {
         console.error(`Error: could not add ${dirname} to Azure.`);
         console.error(out.stderr);
